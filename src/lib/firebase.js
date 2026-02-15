@@ -13,12 +13,12 @@ import {
 } from 'firebase/firestore'
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyArH90Tryzmwsj60Cj3bCaFbF8eeZBN8rc',
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'livepoll-817c0.firebaseapp.com',
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'livepoll-817c0',
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'livepoll-817c0.firebasestorage.app',
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '822629735666',
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:822629735666:web:2474e1e4e6e8e3e36cc46b',
 }
 
 const app = initializeApp(firebaseConfig)
