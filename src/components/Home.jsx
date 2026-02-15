@@ -7,11 +7,12 @@ export default function Home() {
   const [joinCode, setJoinCode] = useState('')
   const [creating, setCreating] = useState(false)
   const [joinError, setJoinError] = useState('')
+  const [password, setPassword] = useState('')
 
   const handleCreate = async () => {
     setCreating(true)
     try {
-      const code = await createRoom()
+      const code = await createRoom(password)
       navigate(`/present/${code}`)
     } catch (err) {
       alert('Failed to create room: ' + err.message)
@@ -45,6 +46,19 @@ export default function Home() {
       <div className="home-hero">
         <h2>Live Polling for Your Classroom</h2>
         <p>Create a poll and get real-time responses from your audience.</p>
+
+        <div style={{ maxWidth: 320, margin: '0 auto 16px' }}>
+          <div className="form-group">
+            <label>Presenter Password (optional)</label>
+            <input
+              className="input"
+              type="password"
+              placeholder="Set a password for the presenter view"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+        </div>
 
         <div className="home-actions">
           <button className="btn btn-primary" onClick={handleCreate} disabled={creating}>

@@ -17,11 +17,38 @@ export default function Presenter() {
   const [activeResponses, setActiveResponses] = useState([])
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [fullscreen, setFullscreen] = useState(false)
+  const [unlocked, setUnlocked] = useState(false)
+  const [passwordInput, setPasswordInput] = useState('')
+  const [passwordError, setPasswordError] = useState('')
 
   // New question form state
   const [newText, setNewText] = useState('')
   const [newType, setNewType] = useState('single') // 'single' | 'multi'
   const [newOptions, setNewOptions] = useState(['', ''])
+
+  // Check if presenter is already unlocked or no password needed
+  useEffect(() => {
+    if (!room) return
+    if (!room.presenterPassword) {
+      setUnlocked(true)
+      return
+    }
+    const key = `livepoll_presenter_unlocked_${roomCode}`
+    if (sessionStorage.getItem(key) === 'true') {
+      setUnlocked(true)
+    }
+  }, [room, roomCode])
+
+  const handlePasswordSubmit = (e) => {
+    e.preventDefault()
+    setPasswordError('')
+    if (passwordInput === room.presenterPassword) {
+      sessionStorage.setItem(`livepoll_presenter_unlocked_${roomCode}`, 'true')
+      setUnlocked(true)
+    } else {
+      setPasswordError('Incorrect password. Try again.')
+    }
+  }
 
   // Subscribe to room
   useEffect(() => {
@@ -102,6 +129,39 @@ export default function Presenter() {
     return (
       <div className="container" style={{ textAlign: 'center', paddingTop: 60 }}>
         Loading room...
+      </div>
+    )
+  }
+
+  if (!unlocked) {
+    return (
+      <div className="container">
+        <div className="card" style={{ maxWidth: 400, margin: '60px auto', textAlign: 'center' }}>
+          <h3 style={{ marginBottom: 16 }}>Presenter Access</h3>
+          <p style={{ color: 'var(--text-muted)', marginBottom: 20, fontSize: '0.9rem' }}>
+            Enter the presenter password for room <strong>{roomCode}</strong>.
+          </p>
+          <form onSubmit={handlePasswordSubmit}>
+            <div className="form-group">
+              <input
+                className="input"
+                type="password"
+                placeholder="Password"
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+                autoFocus
+              />
+            </div>
+            {passwordError && (
+              <p style={{ color: 'var(--danger)', fontSize: '0.85rem', marginBottom: 12 }}>
+                {passwordError}
+              </p>
+            )}
+            <button className="btn btn-primary" type="submit" style={{ width: '100%' }}>
+              Unlock
+            </button>
+          </form>
+        </div>
       </div>
     )
   }

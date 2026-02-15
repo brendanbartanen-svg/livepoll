@@ -42,7 +42,7 @@ function generateRoomCode() {
   return code
 }
 
-export async function createRoom() {
+export async function createRoom(presenterPassword = '') {
   let code = generateRoomCode()
   let attempts = 0
   // Ensure unique code
@@ -58,6 +58,7 @@ export async function createRoom() {
     activeQuestionId: null,
     showResults: false,
     status: 'open', // open | closed
+    presenterPassword,
   })
 
   return code
