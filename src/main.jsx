@@ -11,7 +11,9 @@ function App() {
     <BrowserRouter>
       <div>
         <header className="app-header">
-          <h1>LivePoll</h1>
+          <a href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+            <img src="/wahoo_poll.png" alt="WahooPoll" style={{ height: 40 }} />
+          </a>
         </header>
         <Routes>
           <Route path="/" element={<Home />} />

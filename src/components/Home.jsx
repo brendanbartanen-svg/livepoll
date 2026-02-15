@@ -44,7 +44,8 @@ export default function Home() {
   return (
     <div className="container">
       <div className="home-hero">
-        <h2>Live Polling for Your Classroom</h2>
+        <img src="/wahoo_poll.png" alt="WahooPoll" style={{ height: 120, marginBottom: 24 }} />
+        <h2>Polling for Your Classroom</h2>
         <p>Create a poll and get real-time responses from your audience.</p>
 
         <div style={{ maxWidth: 320, margin: '0 auto 16px' }}>
