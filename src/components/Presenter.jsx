@@ -11,6 +11,7 @@ import {
   subscribeToResponses,
 } from '../lib/firebase'
 import ResultsChart from './ResultsChart'
+import { QRCodeSVG } from 'qrcode.react'
 
 export default function Presenter() {
   const { roomCode } = useParams()
@@ -231,10 +232,13 @@ export default function Presenter() {
   return (
     <div className="container-wide">
       {/* Room info bar */}
-      <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-        <div>
-          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>ROOM CODE</div>
-          <div className="room-code-small">{roomCode}</div>
+      <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <QRCodeSVG value={joinUrl} size={80} />
+          <div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>ROOM CODE</div>
+            <div className="room-code-small">{roomCode}</div>
+          </div>
         </div>
         <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'right' }}>
           Join at: <strong>{joinUrl}</strong>
