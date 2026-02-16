@@ -11,7 +11,7 @@ import {
   subscribeToResponses,
 } from '../lib/firebase'
 import ResultsChart from './ResultsChart'
-import { QRCodeSVG } from 'qrcode.react'
+import { QRCodeCanvas } from 'qrcode.react'
 
 export default function Presenter() {
   const { roomCode } = useParams()
@@ -229,15 +229,32 @@ export default function Presenter() {
   // Join URL for participants
   const joinUrl = `${window.location.origin}/join/${roomCode}`
 
+  const handleDownloadQR = () => {
+    const canvas = document.getElementById('qr-canvas')
+    if (!canvas) return
+    const url = canvas.toDataURL('image/png')
+    const link = document.createElement('a')
+    link.download = `wahoopoll-${roomCode}.png`
+    link.href = url
+    link.click()
+  }
+
   return (
     <div className="container-wide">
       {/* Room info bar */}
       <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <QRCodeSVG value={joinUrl} size={80} />
+          <QRCodeCanvas id="qr-canvas" value={joinUrl} size={200} style={{ width: 80, height: 80 }} />
           <div>
             <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>ROOM CODE</div>
             <div className="room-code-small">{roomCode}</div>
+            <button
+              className="btn btn-outline btn-sm"
+              onClick={handleDownloadQR}
+              style={{ marginTop: 6, fontSize: '0.7rem', padding: '3px 10px' }}
+            >
+              Download QR
+            </button>
           </div>
         </div>
         <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'right' }}>
