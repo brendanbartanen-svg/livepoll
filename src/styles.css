@@ -161,6 +161,10 @@ body {
   border-color: var(--accent);
   box-shadow: 0 0 0 2px rgba(229, 114, 0, 0.2);
 }
+.question-item.editing {
+  border-color: var(--primary);
+  background: #f8f9fa;
+}
 .question-item .q-text { flex: 1; }
 .question-item .q-type {
   font-size: 0.75rem;

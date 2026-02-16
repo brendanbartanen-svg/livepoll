@@ -8,6 +8,8 @@ import {
   updateDoc,
   onSnapshot,
   deleteDoc,
+  getDocs,
+  writeBatch,
   increment,
   serverTimestamp,
 } from 'firebase/firestore'
@@ -101,6 +103,19 @@ export function subscribeToQuestions(roomCode, callback) {
 
 export async function deleteQuestion(roomCode, questionId) {
   await deleteDoc(doc(db, 'rooms', roomCode, 'questions', questionId))
+}
+
+export async function updateQuestion(roomCode, questionId, data) {
+  await updateDoc(doc(db, 'rooms', roomCode, 'questions', questionId), data)
+}
+
+export async function clearResponses(roomCode, questionId) {
+  const responsesRef = collection(db, 'rooms', roomCode, 'questions', questionId, 'responses')
+  const snapshot = await getDocs(responsesRef)
+  if (snapshot.empty) return
+  const batch = writeBatch(db)
+  snapshot.docs.forEach((d) => batch.delete(d.ref))
+  await batch.commit()
 }
 
 // ---- Response management ----

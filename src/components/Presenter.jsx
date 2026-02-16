@@ -6,6 +6,8 @@ import {
   addQuestion,
   subscribeToQuestions,
   deleteQuestion,
+  updateQuestion,
+  clearResponses,
   subscribeToResponses,
 } from '../lib/firebase'
 import ResultsChart from './ResultsChart'
@@ -25,6 +27,12 @@ export default function Presenter() {
   const [newText, setNewText] = useState('')
   const [newType, setNewType] = useState('single') // 'single' | 'multi'
   const [newOptions, setNewOptions] = useState(['', ''])
+
+  // Edit question state
+  const [editingQuestionId, setEditingQuestionId] = useState(null)
+  const [editText, setEditText] = useState('')
+  const [editType, setEditType] = useState('single')
+  const [editOptions, setEditOptions] = useState(['', ''])
 
   // Check if presenter is already unlocked or no password needed
   useEffect(() => {
@@ -68,6 +76,13 @@ export default function Presenter() {
     }
     return subscribeToResponses(roomCode, room.activeQuestionId, setActiveResponses)
   }, [roomCode, room?.activeQuestionId])
+
+  // Auto-cancel edit if the question becomes active
+  useEffect(() => {
+    if (editingQuestionId && editingQuestionId === room?.activeQuestionId) {
+      setEditingQuestionId(null)
+    }
+  }, [room?.activeQuestionId, editingQuestionId])
 
   const activeQuestion = questions.find((q) => q.id === room?.activeQuestionId)
 
@@ -120,6 +135,50 @@ export default function Presenter() {
     setNewType('single')
     setNewOptions(['', ''])
     setShowCreateForm(false)
+  }
+
+  // ---- Edit question ----
+  const handleStartEdit = (question) => {
+    setEditingQuestionId(question.id)
+    setEditText(question.text)
+    setEditType(question.type)
+    setEditOptions([...question.options])
+  }
+
+  const handleCancelEdit = () => {
+    setEditingQuestionId(null)
+    setEditText('')
+    setEditType('single')
+    setEditOptions(['', ''])
+  }
+
+  const handleSaveEdit = async (questionId) => {
+    const text = editText.trim()
+    const options = editOptions.map((o) => o.trim()).filter(Boolean)
+    if (!text) return
+    if (options.length < 2) {
+      alert('Add at least 2 options')
+      return
+    }
+    await updateQuestion(roomCode, questionId, { text, type: editType, options })
+    handleCancelEdit()
+  }
+
+  const handleEditAddOption = () => {
+    if (editOptions.length < 10) {
+      setEditOptions([...editOptions, ''])
+    }
+  }
+
+  const handleEditRemoveOption = (idx) => {
+    if (editOptions.length > 2) {
+      setEditOptions(editOptions.filter((_, i) => i !== idx))
+    }
+  }
+
+  const handleClearResponses = async (questionId) => {
+    if (!window.confirm('Clear all responses for this question? This cannot be undone.')) return
+    await clearResponses(roomCode, questionId)
   }
 
   // Compute tallies for the active question
@@ -249,26 +308,91 @@ export default function Presenter() {
             )}
 
             {questions.map((q) => (
-              <div key={q.id} className={`question-item ${q.id === room.activeQuestionId ? 'active' : ''}`}>
-                <div className="q-text">
-                  <div style={{ fontWeight: 600, marginBottom: 4 }}>{q.text}</div>
-                  <span className="q-type">{q.type === 'multi' ? 'Select all' : 'Single choice'}</span>
-                  <span className="q-type" style={{ marginLeft: 4 }}>{q.options.length} options</span>
-                </div>
-                <div style={{ display: 'flex', gap: 4, flexDirection: 'column' }}>
-                  {q.id !== room.activeQuestionId ? (
-                    <button className="btn btn-primary btn-sm" onClick={() => handleActivate(q.id)}>
-                      Activate
-                    </button>
-                  ) : (
-                    <button className="btn btn-outline btn-sm" onClick={handleCloseQuestion}>
-                      Deactivate
-                    </button>
-                  )}
-                  <button className="btn btn-danger btn-sm" onClick={() => handleDeleteQuestion(q.id)}>
-                    Delete
-                  </button>
-                </div>
+              <div key={q.id} className={`question-item ${q.id === room.activeQuestionId ? 'active' : ''} ${editingQuestionId === q.id ? 'editing' : ''}`}>
+                {editingQuestionId === q.id ? (
+                  <form onSubmit={(e) => { e.preventDefault(); handleSaveEdit(q.id) }} style={{ width: '100%' }}>
+                    <div className="form-group">
+                      <label>Question text</label>
+                      <input
+                        className="input"
+                        value={editText}
+                        onChange={(e) => setEditText(e.target.value)}
+                        placeholder="What do you think about...?"
+                        autoFocus
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Type</label>
+                      <select className="select" value={editType} onChange={(e) => setEditType(e.target.value)}>
+                        <option value="single">Single choice</option>
+                        <option value="multi">Select all that apply</option>
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label>Options (2–10)</label>
+                      {editOptions.map((opt, i) => (
+                        <div key={i} style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
+                          <input
+                            className="input"
+                            value={opt}
+                            onChange={(e) => {
+                              const copy = [...editOptions]
+                              copy[i] = e.target.value
+                              setEditOptions(copy)
+                            }}
+                            placeholder={`Option ${i + 1}`}
+                          />
+                          {editOptions.length > 2 && (
+                            <button type="button" className="btn btn-danger btn-sm" onClick={() => handleEditRemoveOption(i)}>
+                              ×
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                      {editOptions.length < 10 && (
+                        <button type="button" className="btn btn-outline btn-sm" onClick={handleEditAddOption}>
+                          + Add option
+                        </button>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button type="submit" className="btn btn-primary btn-sm">Save</button>
+                      <button type="button" className="btn btn-outline btn-sm" onClick={handleCancelEdit}>Cancel</button>
+                    </div>
+                  </form>
+                ) : (
+                  <>
+                    <div className="q-text">
+                      <div style={{ fontWeight: 600, marginBottom: 4 }}>{q.text}</div>
+                      <span className="q-type">{q.type === 'multi' ? 'Select all' : 'Single choice'}</span>
+                      <span className="q-type" style={{ marginLeft: 4 }}>{q.options.length} options</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 4, flexDirection: 'column' }}>
+                      {q.id !== room.activeQuestionId ? (
+                        <button className="btn btn-primary btn-sm" onClick={() => handleActivate(q.id)}>
+                          Activate
+                        </button>
+                      ) : (
+                        <button className="btn btn-outline btn-sm" onClick={handleCloseQuestion}>
+                          Deactivate
+                        </button>
+                      )}
+                      <button
+                        className="btn btn-outline btn-sm"
+                        onClick={() => handleStartEdit(q)}
+                        disabled={q.id === room.activeQuestionId}
+                      >
+                        Edit
+                      </button>
+                      <button className="btn btn-outline btn-sm" onClick={() => handleClearResponses(q.id)}>
+                        Clear
+                      </button>
+                      <button className="btn btn-danger btn-sm" onClick={() => handleDeleteQuestion(q.id)}>
+                        Delete
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             ))}
           </div>
